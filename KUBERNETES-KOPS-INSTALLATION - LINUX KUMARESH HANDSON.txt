@@ -1,0 +1,132 @@
+
+KUBERNETES-DAY-2-KOPS-INSTALLATION - ubuntu
+
+1.Install Kops Binary
+
+curl -Lo kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+
+amz-lin-2 not sure it is working fine
+curl -Lo kops https://github.com/kubernetes/kops/releases/download/v1.25.3/kops-linux-amd64
+
+
+chmod +x kops
+sudo mv kops /usr/local/bin/kops
+
+2.Install KUBECTL Binary
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+if it is amazon linux-2
+sudo curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/kubectl
+kubectl version
+
+
+if it is ubuntu os do below steps
+
+apt update
+apt install awscli
+
+Now configure
+
+3.AWS Configure
+IAM --- AK,SAK,Region AKIATCKATNPD5UFU2E5S  cwTHUua++KmnkWpqy7OxsSCmz0eAGukbukBS2BWV 
+give permission to admin access 
+
+4. CREATE S3 BUCKET 
+For Store State file as env using export command
+For Ex: export KOPS_STATE_STORE=s3://kops-cluster-buck
+
+5.Create Cluster Name 
+Store in ENV VAR using key Values using export command
+For Ex: export NAME=kumaresh.k8s.local
+
+To check Env Variable use this command "printenv"
+
+
+6.Create Clusters using commands
+kops create cluster --zones us-east-1a ${NAME}
+
+* list clusters with: kops get cluster
+ * edit this cluster with: kops edit cluster kumaresh.k8s.local
+ * edit your node instance group: kops edit ig --name=kumaresh.k8s.local nodes-us-east-1a
+ * edit your master instance group: kops edit ig --name=kumaresh.k8s.local master-us-east-1a
+Finally configure your cluster with: kops update cluster --name kumaresh.k8s.local --yes --admin
+* Changes may require instances to restart: kops rolling-update cluster
+* ssh to a control-plane node: ssh -i ~/.ssh/id_rsa ubuntu@
+
+7.Delete Cluster using commands
+kops delete cluster --name=kumaresh.k8s.local --state=s3://kops-cluster-buck --yes
+
+kops get cluster
+kops rolling-update cluster
+kubectl get nodes
+kops validate cluster
+kubectl get pods
+kubectl get namespace
+kubectl get pods --all-namespaces
+kubectl get pods -n kube-public
+kubectl get pods -o wide -n kube-system
+kubectl describe pod kumareshpod -n netflix
+
+
+
+===================================================================================================
+
+
+secret file
+cat config.json | base64 -w 0
+
+docker files copy command outside container
+sudo docker cp /root/scripts.js container1:/usr/local/apache2/htdocs
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mydeployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      k: k
+  template:
+    metadata:
+      labels:
+        k: k
+    spec:
+      containers:
+      - name: payments
+        image: kumarezzz/mynewimage:v1
+        ports:
+        - containerPort: 80
+      imagePullSecrets:
+      - name: myregistrykey
+
+-------------
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: myregistrykey
+data:
+  .dockerconfigjson: ewoJImF1dGhzIjogewoJCSJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOiB7CgkJCSJhdXRoIjogImEzVnRZWEpsZW5wNk9rdHlhWE5vYVhaQU1UUXpNVEl6IgoJCX0KCX0KfQ==
+type: kubernetes.io/dockerconfigjson
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  type: NodePort
+  selector:
+    k: k
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30007
+
+
+
+
